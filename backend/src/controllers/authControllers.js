@@ -29,6 +29,11 @@ const user = await userModel.create({
     password
 })
 
+const token =  jwt.sign({id:user._id},{process.env.JWT_SECRET_KEY},{expiresIn:"1d"})
+
+
+
+
 
 await sendEmail({
     to:email,
@@ -48,4 +53,40 @@ res.status(201).json({
   }
 }
 
-export default { registerController };
+async function verifyEmailController(req,res){
+const token = req.query.token;
+
+if(!token){
+    return res.status(400).json({
+        success:false,
+        message:"Token is missing"
+    })
+  }
+
+
+let decoded = jwt.verify(token, process.env.JWT_SECRET_KEY)
+
+const user = await userModel.findById(decoded.id);
+
+
+if(!user){
+    return res.status(400).json({
+        success:false,
+        message:"Invalid token"
+    })
+}
+
+user.isVerified = true;
+await user.save();
+
+res.status(200).json({
+    success:true,
+    message:"Email verified successfully"
+})
+
+}
+
+
+
+
+export default { registerController ,verifyEmailController};
