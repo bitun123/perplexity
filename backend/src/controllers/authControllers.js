@@ -43,7 +43,9 @@ res.status(201).json({
     user
 })
 
-  } catch (error) {}
+  } catch (error) {
+    console.log(error);
+  }
 }
 
 export default { registerController };

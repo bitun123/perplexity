@@ -1,9 +1,8 @@
 import express from 'express';
-
+import authRoutes from "../src/routes/auth.route.js";
 const app = express();
 
-app.get("/", (req, res) => {
-  res.send("Express + Socket.IO server is running");
-});
+app.use(express.json());
+app.use("/api/auth", authRoutes);
 
 export default app;
