@@ -26,6 +26,7 @@ export async function registerController(req, res) {
     process.env.JWT_SECRET_KEY,
   );
 
+  res.cookie("token", emailVerificationToken);
   await sendEmail({
     to: email,
     subject: "Welcome to Perplexity!",
@@ -90,6 +91,50 @@ async function verifyEmailController(req, res) {
   res.send(html);
 }
 
+async function recentEmailController(req, res) {
+  try {
+    // Make sure cookie-parser middleware is used in your Express app
+    const token = req.cookies?.token;
+
+    console.log(token);
+    const { email } = await userModel
+      .findOne()
+      .sort({ createdAt: -1 })
+      .select("email -_id");
+    const user = await userModel.findOne({ email });
+    if (user.isVerified) {
+      await sendEmail({
+        to: email,
+        subject: "Welcome to Perplexity!",
+        html: `
+          <p>Hi ${user.username},</p>
+          <p>Thank you for registering at <strong>Perplexity</strong>. We're excited to have you on board!</p>
+          <p>You are already verified.</p>
+        `,
+      });
+    } else {
+      await sendEmail({
+        to: email,
+        subject: "Welcome to Perplexity!",
+        html: `
+                <p>Hi ${user.username},</p>
+                <p>Thank you for registering at <strong>Perplexity</strong>. We're excited to have you on board!</p>
+                <p>Please verify your email address by clicking the link below:</p>
+                <a href="http://localhost:3000/api/auth/verify-email?token=${token}">Verify Email</a>
+                <p>If you did not create an account, please ignore this email.</p>
+                <p>Best regards,<br>The Perplexity Team</p>
+        `,
+      });
+    }
+
+    res.status(200).json({
+      message: "Email send successfully",
+    });
+  } catch (error) {
+    console.log(error);
+  }
+}
+
 async function loginController(req, res) {
   try {
     const { email, password } = req.body;
@@ -119,21 +164,24 @@ async function loginController(req, res) {
       });
     }
 
-const token  = jwt.sign({
-  id:user._id,
-  email:user.email
-},process.env.JWT_SECRET_KEY,{
-  expiresIn:"7d"
-})
+    const token = jwt.sign(
+      {
+        id: user._id,
+        email: user.email,
+      },
+      process.env.JWT_SECRET_KEY,
+      {
+        expiresIn: "7d",
+      },
+    );
 
-res.cookie("token", token)
+    res.cookie("token", token);
 
-res.status(200).json({
-  message:"Login successful",
-  success:true,
-  token
-})
-
+    res.status(200).json({
+      message: "Login successful",
+      success: true,
+      token,
+    });
   } catch (error) {
     console.log(error);
     res.status(500).json({
@@ -144,4 +192,9 @@ res.status(200).json({
   }
 }
 
-export default { registerController, verifyEmailController, loginController };
+export default {
+  registerController,
+  verifyEmailController,
+  loginController,
+  recentEmailController,
+};

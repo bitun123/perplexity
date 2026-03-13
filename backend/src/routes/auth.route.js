@@ -12,6 +12,9 @@ authRouter.post("/register", registerValidationRules, authController.registerCon
 authRouter.get("/verify-email",authController.verifyEmailController);
 
 
+authRouter.get("/recent-email", authController.recentEmailController);
+
+
 authRouter.post("/login", authController.loginController);
 
 export default authRouter;
