@@ -1,6 +1,7 @@
 import userModel from "../models/user.model.js";
 
 import { sendEmail } from "../services/mail.service.js";
+import jwt from "jsonwebtoken";
 
 async function registerController(req, res) {
   try {
@@ -14,79 +15,106 @@ async function registerController(req, res) {
       ],
     });
 
-if(isUserExists){
-    return res.status(400).json({
-        success:false,
-        message:"User already exists"
-    })
-}
+    if (isUserExists) {
+      return res.status(400).json({
+        success: false,
+        message: "User already exists",
+      });
+    }
 
+    const user = await userModel.create({
+      userName,
+      email,
+      password,
+    });
 
+    const token = jwt.sign(
+      {
+        id: user._id,
+        email: user.email,
+      },
+      process.env.JWT_SECRET_KEY,
+      {
+        expiresIn: "1d",
+      },
+    );
 
-const user = await userModel.create({
-    userName,
-    email,
-    password
-})
+    const verificationLink = `${process.env.FRONTEND_URL}/verify?token=${token}`;
 
-const token =  jwt.sign({id:user._id},{process.env.JWT_SECRET_KEY},{expiresIn:"1d"})
+    try {
+      await sendEmail({
+        to: user.email,
+        subject: "Verify Your Email - Perplexity",
+        html: `<h1>Verify Your Email</h1><p>Click the link below to verify your email address and complete your registration:</p><a href="${verificationLink}" style="background-color: #007bff; color: white; padding: 10px 20px; text-decoration: none; border-radius: 5px; display: inline-block;">Verify Email</a><p>Or copy this link: ${verificationLink}</p><p>This link will expire in 24 hours.</p><p>Best regards,<br/>The Perplexity Team</p>`,
+        text: `Verify Your Email\n\nClick the link below to verify your email address:\n${verificationLink}\n\nThis link will expire in 24 hours.\n\nBest regards,\nThe Perplexity Team`,
+      });
+    } catch (emailError) {
+      console.error("Failed to send verification email:", emailError.message);
+      return res.status(500).json({
+        success: false,
+        message: "User created but email failed to send. Check environment variables.",
+        error: emailError.message,
+      });
+    }
 
-
-
-
-
-await sendEmail({
-    to:email,
-    subject:"Welcome to Perplexity",
-    html:`<h1>Welcome to Perplexity</h1><p>Thank you for registering with us. We are excited to have you on board.</p><p>Best regards,<br/>The Perplexity Team</p>`,
-    text:`Welcome to Perplexity\n\nThank you for registering with us. We are excited to have you on board.\n\nBest regards,\nThe Perplexity Team`
-})
-
-res.status(201).json({
-    success:true,
-    message:"User registered successfully",
-    user
-})
-
+    res.status(201).json({
+      success: true,
+      message: "User registered successfully. Please check your email to verify.",
+      user,
+    });
   } catch (error) {
     console.log(error);
+    res.status(500).json({
+      success: false,
+      message: "Error during registration",
+      error: error.message,
+    });
   }
 }
 
-async function verifyEmailController(req,res){
-const token = req.query.token;
+async function verifyEmailController(req, res) {
+  const token = req.query.token;
 
-if(!token){
+  if (!token) {
     return res.status(400).json({
-        success:false,
-        message:"Token is missing"
-    })
+      success: false,
+      message: "Token is missing",
+    });
   }
 
+  let decoded;
 
-let decoded = jwt.verify(token, process.env.JWT_SECRET_KEY)
-
-const user = await userModel.findById(decoded.id);
-
-
-if(!user){
+  try {
+    decoded = jwt.verify(token, process.env.JWT_SECRET_KEY);
+  } catch (error) {
+    console.log(error);
     return res.status(400).json({
-        success:false,
-        message:"Invalid token"
-    })
+      success: false,
+      message: "Invalid or expired token",
+    });
+  }
+
+  const user = await userModel.findOne(
+    { $or: [{ _id: decoded.id }, { email: decoded.email }] },
+  );
+
+  if (!user) {
+    return res.status(400).json({
+      message: "User not found",
+    });
+  }
+
+  user.isVerified = true;
+  await user.save();
+
+
+const html = `<h1>Email Verified</h1><p>Your email has been successfully verified. You can now log in to your account.</p><p>Best regards,<br/>The Perplexity Team</p>`;
+
+
+res.send(html);
+
+
+
 }
 
-user.isVerified = true;
-await user.save();
-
-res.status(200).json({
-    success:true,
-    message:"Email verified successfully"
-})
-
-}
-
-
-
-
-export default { registerController ,verifyEmailController};
+export default { registerController, verifyEmailController };

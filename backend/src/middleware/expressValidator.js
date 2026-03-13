@@ -16,6 +16,4 @@ const registerValidationRules = [
 ]
 
 
-export default {
-    registerValidationRules
-}
+export { registerValidationRules };
