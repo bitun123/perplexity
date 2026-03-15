@@ -1,14 +1,15 @@
-import { usedispatch } from "react-redux";
+import { useDispatch } from "react-redux";
 import {
   register,
   login,
   logout,
   recentVerifiedEmail,
+  getMe,
 } from "../service/auth.api";
 import { setUser, setLoading, setError } from "../states/authSlice";
 
 export const useAuth = () => {
-  const dispatch = usedispatch();
+  const dispatch = useDispatch();
 
   const handleRegister = async ({ username, email, password }) => {
     try {
@@ -32,7 +33,7 @@ export const useAuth = () => {
       dispatch(setLoading(false));
     }
   };
-const handleLogout = async () => {
+  const handleLogout = async () => {
     try {
       dispatch(setLoading(true));
       await logout();
@@ -42,9 +43,9 @@ const handleLogout = async () => {
     } finally {
       dispatch(setLoading(false));
     }
-}
+  };
 
-const handleRecentVerifiedEmail = async () => {
+  const handleRecentVerifiedEmail = async () => {
     try {
       dispatch(setLoading(true));
       const response = await recentVerifiedEmail();
@@ -54,14 +55,25 @@ const handleRecentVerifiedEmail = async () => {
     } finally {
       dispatch(setLoading(false));
     }
-}
+  };
 
-return {
+  const handleGetMe = async () => {
+    try {
+      dispatch(setLoading(true));
+      const response = await getMe();
+      dispatch(setUser(response.user));
+    } catch (error) {
+      dispatch(setError(error.message));
+    } finally {
+      dispatch(setLoading(false));
+    }
+  };
+
+  return {
     handleRegister,
     handleLogin,
     handleLogout,
     handleRecentVerifiedEmail,
-}
-
-
+    handleGetMe,
+  };
 };

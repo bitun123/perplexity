@@ -34,6 +34,12 @@ export const recentVerifiedEmail = async ()=>{
 
 
 
+export const getMe = async ()=>{
+    const response = await api.get("/api/auth/get-me");
+    return response.data;
+}
+
+
 
 
 
