@@ -135,8 +135,6 @@ async function recentEmailController(req, res) {
   }
 }
 
-
-
 async function loginController(req, res) {
   try {
     const { email, password } = req.body;
@@ -194,34 +192,57 @@ async function loginController(req, res) {
   }
 }
 
-
 async function getMeController(req, res) {
-try {
-  const userId = req.user.id;
+  try {
+    const userId = req.user.id;
 
-  const user = await userModel.findById(userId).select("-password");
+    const user = await userModel.findById(userId).select("-password");
 
-  if (!user) {
-    return res.status(404).json({
-      message: "User not found",
+    if (!user) {
+      return res.status(404).json({
+        message: "User not found",
+        success: false,
+      });
+    }
+
+    res.status(200).json({
+      message: "User fetched successfully",
+      success: true,
+      user,
+    });
+  } catch (error) {
+    console.log(error);
+    res.status(500).json({
+      message: "An error occurred while fetching user data",
       success: false,
+      err: error.message,
     });
   }
-
-res.status(200).json({
-  message: "User fetched successfully",
-  success: true,
-  user,
-})
-
-} catch (error) {
-  console.log(error);
-  res.status(500).json({
-    message: "An error occurred while fetching user data",
-    success: false,
-    err: error.message,
-  });
 }
+
+async function logoutController(req, res) {
+  try {
+    const token = req.cookies?.token;
+    if (!token) {
+      return res.status(400).json({
+        message: "Token is missing",
+        success: false,
+      });
+    }
+    res.clearCookie("token");
+
+    res.status(200).json({
+      message: "Logout successful",
+      success: true,
+    });
+  } catch (error) {
+    console.log(error);
+    res.status(500).json({
+      message: "An error occurred while logging out",
+      success: false,
+      err: error.message,
+    });
+  }
 }
 
 export default {
@@ -229,5 +250,6 @@ export default {
   verifyEmailController,
   loginController,
   recentEmailController,
-  getMeController
+  getMeController,
+  logoutController
 };
