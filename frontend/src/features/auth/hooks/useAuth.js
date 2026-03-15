@@ -17,6 +17,7 @@ export const useAuth = () => {
       await register({ username, email, password });
     } catch (error) {
       dispatch(setError(error.message));
+      throw error;
     } finally {
       dispatch(setLoading(false));
     }
@@ -26,9 +27,11 @@ export const useAuth = () => {
     try {
       dispatch(setLoading(true));
       const response = await login({ email, password });
-      dispatch(setUser(response.user));
+      console.log(response);
+      dispatch(setUser(response));
     } catch (error) {
       dispatch(setError(error.message));
+      throw error;
     } finally {
       dispatch(setLoading(false));
     }
@@ -61,6 +64,7 @@ export const useAuth = () => {
     try {
       dispatch(setLoading(true));
       const response = await getMe();
+      console.log(response)
       dispatch(setUser(response.user));
     } catch (error) {
       dispatch(setError(error.message));
@@ -68,6 +72,7 @@ export const useAuth = () => {
       dispatch(setLoading(false));
     }
   };
+
 
   return {
     handleRegister,

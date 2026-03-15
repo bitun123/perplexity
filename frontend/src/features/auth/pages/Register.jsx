@@ -1,14 +1,28 @@
 import React, { useState } from 'react'
-import { useNavigate, Link } from 'react-router-dom'
+import { useNavigate, Link, Navigate } from 'react-router-dom'
+import { useAuth } from '../hooks/useAuth'
+import { useSelector } from "react-redux";
 
 function Register() {
 
-    const [username, setusername] = useState("")
-    const [email, setEmail] = useState("")
-    const [password, setPassword] = useState("")
-    const [errors, setErrors] = useState({})
-    const [isLoading, setIsLoading] = useState(false)
-    const navigate = useNavigate()
+  const [username, setusername] = useState("")
+  const [email, setEmail] = useState("")
+  const [password, setPassword] = useState("")
+  const navigate = useNavigate()
+  const { handleRegister } = useAuth()
+  const { user, loading, errors = {} } = useSelector((state) => state.auth)
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    try {
+      await handleRegister({ username, email, password });
+      navigate("/login");
+    } catch (error) {
+      console.error("Registration error:", error);
+    }
+  }
+  if (!loading && user) {
+    return <Navigate to="/" replace={true} />
+  }
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-900 via-gray-800 to-black flex items-center justify-center p-4">
@@ -21,7 +35,7 @@ function Register() {
 
         {/* Form Container */}
         <div className="bg-gray-800 rounded-lg shadow-xl p-8 border border-gray-700">
-          <form  className="space-y-5">
+          <form className="space-y-5" onSubmit={handleSubmit}>
             {/* Username Field */}
             <div>
               <label htmlFor="username" className="block text-sm font-medium text-gray-300 mb-2">
@@ -34,11 +48,10 @@ function Register() {
                 value={username}
                 onChange={(e) => setusername(e.target.value)}
                 placeholder="johndoe"
-                className={`w-full px-4 py-3 rounded-lg bg-gray-700 border transition-colors duration-200 outline-none ${
-                  errors.username
-                    ? 'border-red-500 focus:border-red-400'
-                    : 'border-gray-600 focus:border-[#60A6AF]'
-                } text-white placeholder-gray-400`}
+                className={`w-full px-4 py-3 rounded-lg bg-gray-700 border transition-colors duration-200 outline-none ${errors.username || errors.submit
+                  ? 'border-red-500 focus:border-red-400'
+                  : 'border-gray-600 focus:border-[#60A6AF]'
+                  } text-white placeholder-gray-400`}
               />
               {errors.username && (
                 <p className="mt-1 text-sm text-red-400">{errors.username}</p>
@@ -57,11 +70,10 @@ function Register() {
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 placeholder="you@example.com"
-                className={`w-full px-4 py-3 rounded-lg bg-gray-700 border transition-colors duration-200 outline-none ${
-                  errors.email
-                    ? 'border-red-500 focus:border-red-400'
-                    : 'border-gray-600 focus:border-[#60A6AF]'
-                } text-white placeholder-gray-400`}
+                className={`w-full px-4 py-3 rounded-lg bg-gray-700 border transition-colors duration-200 outline-none ${errors.email || errors.submit
+                  ? 'border-red-500 focus:border-red-400'
+                  : 'border-gray-600 focus:border-[#60A6AF]'
+                  } text-white placeholder-gray-400`}
               />
               {errors.email && (
                 <p className="mt-1 text-sm text-red-400">{errors.email}</p>
@@ -80,11 +92,10 @@ function Register() {
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 placeholder="••••••••"
-                className={`w-full px-4 py-3 rounded-lg bg-gray-700 border transition-colors duration-200 outline-none ${
-                  errors.password
-                    ? 'border-red-500 focus:border-red-400'
-                    : 'border-gray-600 focus:border-[#60A6AF]'
-                } text-white placeholder-gray-400`}
+                className={`w-full px-4 py-3 rounded-lg bg-gray-700 border transition-colors duration-200 outline-none ${errors.password || errors.submit
+                  ? 'border-red-500 focus:border-red-400'
+                  : 'border-gray-600 focus:border-[#60A6AF]'
+                  } text-white placeholder-gray-400`}
               />
               {errors.password && (
                 <p className="mt-1 text-sm text-red-400">{errors.password}</p>
@@ -101,10 +112,10 @@ function Register() {
             {/* Submit Button */}
             <button
               type="submit"
-              disabled={isLoading}
+              disabled={loading}
               className="w-full px-4 py-3 rounded-lg bg-[#60A6AF] text-white font-semibold hover:bg-[#4a8a92] transition-colors duration-200 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
             >
-              {isLoading ? (
+              {loading ? (
                 <>
                   <span className="animate-spin">⚙️</span>
                   Creating account...

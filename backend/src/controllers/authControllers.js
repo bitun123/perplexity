@@ -180,8 +180,14 @@ async function loginController(req, res) {
     res.status(200).json({
       message: "Login successful",
       success: true,
+      user: {
+        id: user._id,
+        username: user.username,
+        email: user.email,
+      },
       token,
     });
+    
   } catch (error) {
     console.log(error);
     res.status(500).json({
@@ -195,7 +201,7 @@ async function loginController(req, res) {
 async function getMeController(req, res) {
   try {
     const userId = req.user.id;
-
+    console.log(userId);
     const user = await userModel.findById(userId).select("-password");
 
     if (!user) {
@@ -251,5 +257,5 @@ export default {
   loginController,
   recentEmailController,
   getMeController,
-  logoutController
+  logoutController,
 };
