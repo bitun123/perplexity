@@ -135,6 +135,8 @@ async function recentEmailController(req, res) {
   }
 }
 
+
+
 async function loginController(req, res) {
   try {
     const { email, password } = req.body;
@@ -191,6 +193,7 @@ async function loginController(req, res) {
     });
   }
 }
+
 
 export default {
   registerController,

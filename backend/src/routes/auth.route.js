@@ -17,4 +17,8 @@ authRouter.get("/recent-email", authController.recentEmailController);
 
 authRouter.post("/login", authController.loginController);
 
+authRouter.get("/get-me", authController.getMeController);
+
+authRouter.post("/logout", authController.logoutController);
+
 export default authRouter;
