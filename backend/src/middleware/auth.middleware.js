@@ -11,9 +11,11 @@ export function authUser(req, res, next) {
         })
     }
 
+let decoded;
+
     try {
 
-        const decoded = jwt.verify(token, process.env.JWT_SECRET_KEY);
+         decoded = jwt.verify(token, process.env.JWT_SECRET_KEY);
 
         req.user = decoded;
 
