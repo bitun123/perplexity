@@ -8,11 +8,10 @@ import messageModel from "../models/message.model.js";
 export const sendMessage = async (req, res) => {
   const { message, chat: chatId } = req.body;
 
-
   //declare title and chat variables to be used later
   let title = null,
     chat = null;
-//if chatId is not provided, create a new chat and generate a title for it using the first message
+  //if chatId is not provided, create a new chat and generate a title for it using the first message
   if (!chatId) {
     title = await generateMistralChatTitle(message);
 
@@ -30,12 +29,11 @@ export const sendMessage = async (req, res) => {
     role: "user",
   });
 
-    //fetch all messages for the chat, create a new message document for the user's message, generate a response from the AI, and create a new message document for the AI's response
-  const messages = await messageModel.find({ chat: chatId || chat._id })
+  //fetch all messages for the chat, create a new message document for the user's message, generate a response from the AI, and create a new message document for the AI's response
+  const messages = await messageModel.find({ chat: chatId || chat._id });
 
   //generate a response from the AI using the provided message and the chat history, and create a new message document for the AI's response
   const aiResponse = await generateGeminiResponse(messages);
-
 
   //AI message should also be created with the chatId if it exists, otherwise use the newly created chat's id
   const aiMessage = await messageModel.create({
@@ -47,5 +45,73 @@ export const sendMessage = async (req, res) => {
   res.status(201).json({
     message: "Message sent successfully",
     AIMessage: aiMessage,
+  });
+};
+
+export const getChats = async (req, res) => {
+  const user = req.user.id;
+
+  const chats = await chatModel.find({ user });
+
+  if (!chats) {
+    return res.status(404).json({
+      message: "No chats found",
+      success: false,
+      err: "No chats found for this user",
+    });
+  }
+
+  res.status(200).json({
+    message: "Chats fetched successfully",
+    success: true,
+    chats,
+  });
+};
+
+export const getMessages = async (req, res) => {
+  const { chatId } = req.params;
+console.log(chatId)
+  const messages = await messageModel.findOne({
+    chat: chatId
+  });
+
+
+
+  if (!messages) {
+    return res.status(404).json({
+      message: "No messages found",
+      success: false,
+      err: "No messages found for this chat",
+    });
+  }
+  res.status(200).json({
+    message: "Messages fetched successfully",
+    success: true,
+    messages,
+  });
+};
+
+export const deleteChat = async (req, res) => {
+  const { chatId } = req.params;
+
+  const chat = await chatModel.findOneAndDelete({
+    _id: chatId,
+    user: req.user.id,
+  });
+  if (!chat) {
+    return res.status(404).json({
+      message: "Chat not found",
+      success: false,
+      err: "No chat found with this id for this user",
+    });
+  }
+
+  await messageModel.deleteMany({
+    chat: chatId,
+  });
+
+  res.status(200).json({
+    message: "Chat deleted successfully",
+    success: true,
   });
 };
