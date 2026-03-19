@@ -21,30 +21,30 @@ const MessageActions = ({ message }) => {
         <div className="flex items-center gap-1 mt-3 opacity-0 group-hover:opacity-100 transition-opacity duration-200">
             <button
                 onClick={handleCopy}
-                className="p-1.5 rounded-md text-gray-500 hover:text-white hover:bg-gray-800 transition-colors"
+                className="p-1 sm:p-1.5 rounded-md text-gray-500 hover:text-white hover:bg-gray-800 transition-colors"
                 title="Copy"
             >
-                {copied ? <Check size={15} className="text-green-400" /> : <Copy size={15} />}
+                {copied ? <Check size={13} className="sm:w-4 sm:h-4 text-green-400" /> : <Copy size={13} className="sm:w-4 sm:h-4" />}
             </button>
             <button
                 onClick={() => setLiked(liked === 'up' ? null : 'up')}
-                className={`p-1.5 rounded-md transition-colors ${liked === 'up' ? 'text-blue-400 bg-blue-400/10' : 'text-gray-500 hover:text-white hover:bg-gray-800'}`}
+                className={`p-1 sm:p-1.5 rounded-md transition-colors ${liked === 'up' ? 'text-blue-400 bg-blue-400/10' : 'text-gray-500 hover:text-white hover:bg-gray-800'}`}
                 title="Good response"
             >
-                <ThumbsUp size={15} />
+                <ThumbsUp size={13} className="sm:w-4 sm:h-4" />
             </button>
             <button
                 onClick={() => setLiked(liked === 'down' ? null : 'down')}
-                className={`p-1.5 rounded-md transition-colors ${liked === 'down' ? 'text-red-400 bg-red-400/10' : 'text-gray-500 hover:text-white hover:bg-gray-800'}`}
+                className={`p-1 sm:p-1.5 rounded-md transition-colors ${liked === 'down' ? 'text-red-400 bg-red-400/10' : 'text-gray-500 hover:text-white hover:bg-gray-800'}`}
                 title="Bad response"
             >
-                <ThumbsDown size={15} />
+                <ThumbsDown size={13} className="sm:w-4 sm:h-4" />
             </button>
             <button
-                className="p-1.5 rounded-md text-gray-500 hover:text-white hover:bg-gray-800 transition-colors"
+                className="p-1 sm:p-1.5 rounded-md text-gray-500 hover:text-white hover:bg-gray-800 transition-colors"
                 title="Share"
             >
-                <Share size={15} />
+                <Share size={13} className="sm:w-4 sm:h-4" />
             </button>
         </div>
     );
@@ -55,25 +55,25 @@ const MarkdownContent = ({ content }) => (
     <ReactMarkdown
         components={{
             h1: ({ children }) => (
-                <h1 className="mt-0 mb-5 text-2xl font-bold text-white">{children}</h1>
+                <h1 className="mt-0 mb-5 text-xl sm:text-2xl md:text-3xl font-bold text-white">{children}</h1>
             ),
             h2: ({ children }) => (
-                <h2 className="mt-6 mb-4 text-xl font-bold text-white">{children}</h2>
+                <h2 className="mt-6 mb-4 text-lg sm:text-xl md:text-2xl font-bold text-white">{children}</h2>
             ),
             h3: ({ children }) => (
-                <h3 className="mt-4 mb-2 text-base font-semibold text-gray-200">{children}</h3>
+                <h3 className="mt-4 mb-2 text-base sm:text-lg md:text-xl font-semibold text-gray-200">{children}</h3>
             ),
             p: ({ children }) => (
-                <p className="mb-4 last:mb-0 text-sm md:text-base leading-7 text-gray-200">{children}</p>
+                <p className="mb-4 last:mb-0 text-xs sm:text-sm md:text-base leading-6 sm:leading-7 text-gray-200">{children}</p>
             ),
             ul: ({ children }) => (
-                <ul className="mb-4 ml-5 space-y-2 list-disc">{children}</ul>
+                <ul className="mb-4 ml-4 sm:ml-5 space-y-2 list-disc">{children}</ul>
             ),
             ol: ({ children }) => (
-                <ol className="mb-4 ml-5 space-y-2 list-decimal">{children}</ol>
+                <ol className="mb-4 ml-4 sm:ml-5 space-y-2 list-decimal">{children}</ol>
             ),
             li: ({ children }) => (
-                <li className="text-sm md:text-base text-gray-300">{children}</li>
+                <li className="text-xs sm:text-sm md:text-base text-gray-300">{children}</li>
             ),
             code: ({ inline, className, children }) => {
                 const match = /language-(\w+)/.exec(className || '');
@@ -81,14 +81,14 @@ const MarkdownContent = ({ content }) => (
 
                 if (!inline) {
                     return (
-                        <div className="mb-5 rounded-xl overflow-hidden border border-gray-700 bg-gray-900">
-                            <div className="flex items-center justify-between px-4 py-3 border-b border-gray-700">
-                                <span className="text-xs text-gray-400 font-mono uppercase tracking-wider">
+                        <div className="mb-5 rounded-lg sm:rounded-xl overflow-hidden border border-gray-700 bg-gray-900">
+                            <div className="flex items-center justify-between px-3 sm:px-4 py-2 sm:py-3 border-b border-gray-700 overflow-x-auto">
+                                <span className="text-xs text-gray-400 font-mono uppercase tracking-wider whitespace-nowrap">
                                     {lang}
                                 </span>
                                 <button
                                     onClick={() => navigator.clipboard.writeText(String(children))}
-                                    className="text-xs text-gray-400 hover:text-white transition-colors px-2 py-1 rounded hover:bg-gray-700"
+                                    className="text-xs text-gray-400 hover:text-white transition-colors px-2 py-1 rounded hover:bg-gray-700 flex-shrink-0"
                                 >
                                     Copy
                                 </button>
@@ -98,10 +98,10 @@ const MarkdownContent = ({ content }) => (
                                 style={atomDark}
                                 customStyle={{
                                     margin: 0,
-                                    padding: '1.25rem',
+                                    padding: '0.75rem 1rem',
                                     background: '#0d1117',
-                                    fontSize: '0.85rem',
-                                    lineHeight: '1.6',
+                                    fontSize: '0.75rem',
+                                    lineHeight: '1.5',
                                 }}
                             >
                                 {String(children).replace(/\n$/, '')}
@@ -118,7 +118,7 @@ const MarkdownContent = ({ content }) => (
             },
             pre: ({ children }) => <div className="mb-1">{children}</div>,
             blockquote: ({ children }) => (
-                <div className="my-5 px-4 py-3 rounded-lg bg-blue-500/10 border-l-4 border-blue-500 text-gray-300">
+                <div className="my-5 px-3 sm:px-4 py-3 rounded-lg bg-blue-500/10 border-l-4 border-blue-500 text-gray-300 text-xs sm:text-sm md:text-base">
                     {children}
                 </div>
             ),
@@ -129,12 +129,12 @@ const MarkdownContent = ({ content }) => (
                 </a>
             ),
             strong: ({ children }) => (
-                <strong className="font-semibold text-gray-200 text-[1.05rem]">{children}</strong>
+                <strong className="font-semibold text-gray-200 text-[1.02rem]">{children}</strong>
             ),
             em: ({ children }) => <em className="italic text-gray-300">{children}</em>,
             table: ({ children }) => (
-                <div className="mb-5 overflow-x-auto rounded-xl border border-gray-700 bg-gray-900/50">
-                    <table className="w-full text-sm">{children}</table>
+                <div className="mb-5 overflow-x-auto rounded-lg sm:rounded-xl border border-gray-700 bg-gray-900/50 -mx-3 sm:mx-0">
+                    <table className="w-full text-xs sm:text-sm">{children}</table>
                 </div>
             ),
             thead: ({ children }) => (
@@ -146,9 +146,9 @@ const MarkdownContent = ({ content }) => (
             tr: ({ children }) => (
                 <tr className="hover:bg-gray-800/30 transition-colors">{children}</tr>
             ),
-            td: ({ children }) => <td className="px-5 py-3 text-gray-300">{children}</td>,
+            td: ({ children }) => <td className="px-3 sm:px-5 py-2 sm:py-3 text-gray-300">{children}</td>,
             th: ({ children }) => (
-                <th className="px-5 py-3 text-left font-semibold text-gray-100">{children}</th>
+                <th className="px-3 sm:px-5 py-2 sm:py-3 text-left font-semibold text-gray-100">{children}</th>
             ),
         }}
     >
@@ -237,37 +237,38 @@ function Dashboard() {
         <div className="flex h-screen bg-gray-900 text-white overflow-hidden">
 
             {/* ── Sidebar ── */}
-            <aside className="hidden md:flex w-full md:w-64 lg:w-78 bg-gray-950 border-r border-gray-800 flex-col">
-                <div className="p-4 border-b border-gray-800">
-                    <button className="w-full px-4 py-2 bg-gray-800 hover:bg-gray-700 rounded-lg text-sm font-medium transition-colors">
+            <aside className="hidden md:flex w-full md:w-56 lg:w-64 bg-gray-950 border-r border-gray-800 flex-col">
+                <div className="p-3 md:p-4 border-b border-gray-800">
+                    <button className="w-full px-3 md:px-4 py-2 md:py-2.5 bg-gray-800 hover:bg-gray-700 rounded-lg text-xs md:text-sm font-medium transition-colors">
                         + New Chat
                     </button>
                 </div>
 
-                <div className="flex-1 overflow-y-auto flex flex-col gap-3 p-2 no-scrollbar pt-5">
+                <div className="flex-1 overflow-y-auto flex flex-col gap-2 md:gap-3 p-2 no-scrollbar pt-3 md:pt-5">
                     {Object.values(chats.chats || {}).map((c) => (
                         <button
                             key={c.id}
                             type="button"
                             onClick={() => chat.handleOpenChat(c.id)}
-                            className={`w-full cursor-pointer rounded-xl px-3 py-2 text-left text-base font-medium transition ${
+                            className={`w-full cursor-pointer rounded-lg md:rounded-xl px-2 md:px-3 py-2 text-left text-xs md:text-sm font-medium transition truncate ${
                                 currentChatId === c.id
                                     ? 'bg-gray-800 text-white'
                                     : 'bg-gray-950 text-gray-300 hover:bg-gray-800 hover:text-white'
                             }`}
+                            title={c.title}
                         >
                             {c.title}
                         </button>
                     ))}
                 </div>
 
-                <div className="p-4 border-t border-gray-800">
-                    <div className="flex items-center gap-3 px-4 py-2">
-                        <div className="w-8 h-8 rounded-full bg-[#4E868D] flex items-center justify-center text-sm font-bold flex-shrink-0">
+                <div className="p-3 md:p-4 border-t border-gray-800">
+                    <div className="flex items-center gap-2 md:gap-3 px-2 md:px-4 py-2">
+                        <div className="w-8 h-8 rounded-full bg-[#4E868D] flex items-center justify-center text-xs font-bold flex-shrink-0">
                             {user?.username?.charAt(0)?.toUpperCase() || 'U'}
                         </div>
                         <div className="flex-1 min-w-0">
-                            <p className="text-md font-medium truncate">{user?.username || 'User'}</p>
+                            <p className="text-xs md:text-sm font-medium truncate">{user?.username || 'User'}</p>
                             <p className="text-xs text-gray-400 truncate">{user?.email || 'user@example.com'}</p>
                         </div>
                     </div>
@@ -275,13 +276,13 @@ function Dashboard() {
             </aside>
 
             {/* ── Main ── */}
-            <main className="flex-1 flex flex-col w-full md:w-auto justify-center items-center bg-gray-950">
+            <main className="flex-1 flex flex-col w-full bg-gray-950 overflow-hidden">
 
                 {/* Messages */}
-                <div className="w-[70rem] flex-1 overflow-y-auto p-4 md:p-6 space-y-4 md:space-y-6 no-scrollbar">
+                <div className="w-full flex-1 overflow-y-auto px-4 py-4 md:px-6 md:py-6 space-y-4 md:space-y-6 no-scrollbar max-w-4xl mx-auto">
 
                     {messages.length === 0 && (
-                        <div className="flex h-full items-center justify-center text-gray-600 text-sm">
+                        <div className="flex h-full items-center justify-center text-gray-600 text-xs sm:text-sm">
                             Start a conversation…
                         </div>
                     )}
@@ -292,7 +293,7 @@ function Dashboard() {
                             className={`flex ${message.role === 'user' ? 'justify-end' : 'w-full'}`}
                         >
                             <div
-                                className={`group max-w-[95%] rounded-2xl px-5 py-4 md:px-7 md:py-5 ${
+                                className={`group max-w-full sm:max-w-[90%] md:max-w-[85%] lg:max-w-[75%] rounded-2xl px-3 py-3 sm:px-5 sm:py-4 md:px-7 md:py-5 ${
                                     message.role === 'user'
                                         ? 'bg-gray-700 text-white ml-auto rounded-3xl'
                                         : 'text-gray-100 mr-auto'
@@ -303,7 +304,7 @@ function Dashboard() {
                                 )}
 
                                 {message.role === 'user' ? (
-                                    <p className="text-sm md:text-base">{message.content}</p>
+                                    <p className="text-xs sm:text-sm md:text-base">{message.content}</p>
                                 ) : (
                                     <div className="space-y-2">
                                         <MarkdownContent content={message.content} />
@@ -327,18 +328,18 @@ function Dashboard() {
                 </div>
 
                 {/* ── Input Area ── */}
-                <div className="p-4 md:pb-5">
-                    <div className="w-[70rem] mx-auto">
+                <div className="w-full p-3 md:p-6 border-t border-gray-800">
+                    <div className="w-full max-w-4xl mx-auto">
                         {selectedImage && (
                             <div className="mb-3 relative inline-block">
                                 <img
                                     src={selectedImage}
                                     alt="Selected"
-                                    className="h-20 md:h-24 rounded-lg border border-gray-700"
+                                    className="h-16 sm:h-20 md:h-24 rounded-lg border border-gray-700"
                                 />
                                 <button
                                     onClick={removeSelectedImage}
-                                    className="absolute -top-2 -right-2 bg-red-600 hover:bg-red-700 text-white rounded-full w-6 h-6 flex items-center justify-center text-xs font-bold"
+                                    className="absolute -top-2 -right-2 bg-red-600 hover:bg-red-700 text-white rounded-full w-5 h-5 sm:w-6 sm:h-6 flex items-center justify-center text-xs font-bold"
                                 >
                                     ✕
                                 </button>
@@ -346,7 +347,7 @@ function Dashboard() {
                         )}
 
                         <form onSubmit={handleSendMessage} className="w-full">
-                            <div className="flex gap-2 md:gap-3 items-end">
+                            <div className="flex gap-1.5 sm:gap-2 md:gap-3 items-end">
                                 <input
                                     ref={fileInputRef}
                                     type="file"
@@ -357,10 +358,10 @@ function Dashboard() {
                                 <button
                                     type="button"
                                     onClick={() => fileInputRef.current?.click()}
-                                    className="px-6 md:px-4 py-4 bg-gray-800 hover:bg-gray-700 text-gray-300 hover:text-white rounded-lg transition-colors flex items-center justify-center"
+                                    className="px-3 sm:px-4 md:px-4 py-2.5 sm:py-3 md:py-4 bg-gray-800 hover:bg-gray-700 text-gray-300 hover:text-white rounded-lg transition-colors flex items-center justify-center flex-shrink-0"
                                     title="Attach image"
                                 >
-                                    <Image size={20} />
+                                    <Image size={16} className="sm:w-5 sm:h-5 md:w-5 md:h-5" />
                                 </button>
 
                                 <input
@@ -368,28 +369,28 @@ function Dashboard() {
                                     value={inputValue}
                                     onChange={(e) => setInputValue(e.target.value)}
                                     placeholder="Type your message..."
-                                    className="flex-1 px-4 py-4 bg-gray-800 rounded-4xl text-white placeholder-gray-500 border-none outline-none text-sm md:text-base"
+                                    className="flex-1 px-3 sm:px-4 py-2.5 sm:py-3 md:py-4 bg-gray-800 rounded-2xl sm:rounded-3xl md:rounded-4xl text-white placeholder-gray-500 border-none outline-none text-xs sm:text-sm md:text-base"
                                 />
 
                                 <button
                                     type="button"
                                     onClick={handleVoiceRecord}
-                                    className={`px-5 md:px-4 py-4 rounded-lg transition-colors flex items-center justify-center ${
+                                    className={`px-3 sm:px-4 md:px-4 py-2.5 sm:py-3 md:py-4 rounded-lg transition-colors flex items-center justify-center flex-shrink-0 ${
                                         isRecording
                                             ? 'bg-red-600 hover:bg-red-700 text-white'
                                             : 'bg-gray-800 hover:bg-gray-700 text-gray-300 hover:text-white'
                                     }`}
                                     title={isRecording ? 'Stop recording' : 'Record voice'}
                                 >
-                                    {isRecording ? <Square size={20} /> : <Mic size={20} />}
+                                    {isRecording ? <Square size={16} className="sm:w-5 sm:h-5 md:w-5 md:h-5" /> : <Mic size={16} className="sm:w-5 sm:h-5 md:w-5 md:h-5" />}
                                 </button>
 
                                 <button
                                     type="submit"
                                     disabled={chats.isLoading}
-                                    className="px-5 py-4 bg-gray-600 hover:bg-gray-700 disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer active:scale-95 text-white rounded-lg transition-colors flex items-center justify-center"
+                                    className="px-3 sm:px-4 md:px-5 py-2.5 sm:py-3 md:py-4 bg-gray-600 hover:bg-gray-700 disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer active:scale-95 text-white rounded-lg transition-colors flex items-center justify-center flex-shrink-0"
                                 >
-                                    <Send size={20} />
+                                    <Send size={16} className="sm:w-5 sm:h-5 md:w-5 md:h-5" />
                                 </button>
                             </div>
                         </form>
