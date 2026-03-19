@@ -42,12 +42,17 @@ export const sendMessage = async (req, res) => {
     role: "ai",
   });
 
+
+  //if a new chat was created, return the chat and the AI's response, otherwise just return the AI's response
   res.status(201).json({
     message: "Message sent successfully",
+    chat,
     AIMessage: aiMessage,
   });
 };
 
+
+//fetch all chats for the authenticated user, and fetch messages for a specific chat, and delete a specific chat along with its messages
 export const getChats = async (req, res) => {
   const user = req.user.id;
 
@@ -68,14 +73,14 @@ export const getChats = async (req, res) => {
   });
 };
 
+
+//fetch messages for a specific chat
 export const getMessages = async (req, res) => {
   const { chatId } = req.params;
-console.log(chatId)
+  console.log(chatId);
   const messages = await messageModel.findOne({
-    chat: chatId
+    chat: chatId,
   });
-
-
 
   if (!messages) {
     return res.status(404).json({
@@ -91,6 +96,8 @@ console.log(chatId)
   });
 };
 
+
+//delete a specific chat along with its messages
 export const deleteChat = async (req, res) => {
   const { chatId } = req.params;
 
