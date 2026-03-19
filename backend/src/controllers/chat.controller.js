@@ -1,58 +1,64 @@
 import {
-  generateGroqResponse,
+  generateGroqResponseStream,
   generateMistralChatTitle,
 } from "../services/ai.service.js";
 import chatModel from "../models/chats.model.js";
 import messageModel from "../models/message.model.js";
 
+// ─── Send Message (Streaming) ─────────────────────────────────────────────────
+
 export const sendMessage = async (req, res) => {
   const { message, chat: chatId } = req.body;
 
-  //declare title and chat variables to be used later
-  let title = null,
-    chat = null;
-  //if chatId is not provided, create a new chat and generate a title for it using the first message
-  if (!chatId) {
-    title = await generateMistralChatTitle(message);
+  let chat = null;
 
-    chat = await chatModel.create({
-      title,
-      user: req.user.id,
-      role: "user",
-    });
+  if (!chatId) {
+    const title = await generateMistralChatTitle(message);
+    chat = await chatModel.create({ title, user: req.user.id, role: "user" });
+  } else {
+    chat = await chatModel.findById(chatId);
   }
 
-  //user message should be created with the chatId if it exists, otherwise use the newly created chat's id
-  const userMessage = await messageModel.create({
-    chat: chatId || chat._id,
+  const resolvedChatId = chat._id;
+
+  await messageModel.create({
+    chat: resolvedChatId,
     content: message,
     role: "user",
   });
 
-  //fetch all messages for the chat, create a new message document for the user's message, generate a response from the AI, and create a new message document for the AI's response
-  const messages = await messageModel.find({ chat: chatId || chat._id });
+  const messages = await messageModel.find({ chat: resolvedChatId });
 
-  //generate a response from the AI using the provided message and the chat history, and create a new message document for the AI's response
-  const aiResponse = await generateGroqResponse(messages);
+  // ✅ SSE Headers
+  res.setHeader("Content-Type", "text/event-stream");
+  res.setHeader("Cache-Control", "no-cache");
+  res.setHeader("Connection", "keep-alive");
 
-  //AI message should also be created with the chatId if it exists, otherwise use the newly created chat's id
+  // ✅ Send chat info first so frontend gets the chatId
+  res.write(`data: ${JSON.stringify({ type: "chat", chat })}\n\n`);
+
+  // ✅ Stream tokens to frontend
+  const fullContent = await generateGroqResponseStream(
+    messages,
+    (token) => {
+      res.write(`data: ${JSON.stringify({ type: "token", token })}\n\n`);
+    }
+  );
+
+  // ✅ Save complete AI message to DB
   const aiMessage = await messageModel.create({
-    chat: chatId || chat._id,
-    content: aiResponse,
+    chat: resolvedChatId,
+    content: fullContent,
     role: "ai",
   });
 
-
-  //if a new chat was created, return the chat and the AI's response, otherwise just return the AI's response
-  res.status(201).json({
-    message: "Message sent successfully",
-    chat,
-    AIMessage: aiMessage,
-  });
+  // ✅ Signal stream end
+  res.write(`data: ${JSON.stringify({ type: "done", AIMessage: aiMessage })}\n\n`);
+  res.end();
 };
 
+// ─── Get All Chats ────────────────────────────────────────────────────────────
 
-//fetch all chats for the authenticated user, and fetch messages for a specific chat, and delete a specific chat along with its messages
 export const getChats = async (req, res) => {
   const user = req.user.id;
 
@@ -73,14 +79,12 @@ export const getChats = async (req, res) => {
   });
 };
 
+// ─── Get Messages ─────────────────────────────────────────────────────────────
 
-//fetch messages for a specific chat
 export const getMessages = async (req, res) => {
   const { chatId } = req.params;
-  console.log(chatId);
-  const messages = await messageModel.findOne({
-    chat: chatId,
-  });
+
+  const messages = await messageModel.find({ chat: chatId });
 
   if (!messages) {
     return res.status(404).json({
@@ -89,6 +93,7 @@ export const getMessages = async (req, res) => {
       err: "No messages found for this chat",
     });
   }
+
   res.status(200).json({
     message: "Messages fetched successfully",
     success: true,
@@ -96,8 +101,8 @@ export const getMessages = async (req, res) => {
   });
 };
 
+// ─── Delete Chat ──────────────────────────────────────────────────────────────
 
-//delete a specific chat along with its messages
 export const deleteChat = async (req, res) => {
   const { chatId } = req.params;
 
@@ -105,6 +110,7 @@ export const deleteChat = async (req, res) => {
     _id: chatId,
     user: req.user.id,
   });
+
   if (!chat) {
     return res.status(404).json({
       message: "Chat not found",
@@ -113,9 +119,7 @@ export const deleteChat = async (req, res) => {
     });
   }
 
-  await messageModel.deleteMany({
-    chat: chatId,
-  });
+  await messageModel.deleteMany({ chat: chatId });
 
   res.status(200).json({
     message: "Chat deleted successfully",

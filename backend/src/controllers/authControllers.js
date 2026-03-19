@@ -3,7 +3,9 @@ import jwt from "jsonwebtoken";
 import { sendEmail } from "../services/mail.service.js";
 
 export async function registerController(req, res) {
-  const { username, email, password } = req.body;
+try {
+  
+    const { username, email, password } = req.body;
 
   const isUserAlreadyExists = await userModel.findOne({
     $or: [{ email }, { username }],
@@ -49,6 +51,14 @@ export async function registerController(req, res) {
       email: user.email,
     },
   });
+} catch (error) {
+
+  res.status(500).json({
+    message: "An error occurred while registering the user",
+    success: false,
+    err: error.message,
+  });
+}
 }
 
 async function verifyEmailController(req, res) {
