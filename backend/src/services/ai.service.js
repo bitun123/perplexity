@@ -1,10 +1,11 @@
-import {ChatGoogleGenerativeAI} from "@langchain/google-genai"
+import { ChatGroq } from "@langchain/groq";
 import { ChatMistralAI } from "@langchain/mistralai";
 import {AIMessage, HumanMessage,SystemMessage} from "langchain"
-const geminiModel = new ChatGoogleGenerativeAI({
-    model:"gemini-2.5-flash-lite",
-apiKey:process.env.GOOGLE_GEMINI_API_KEY
-})
+export const groqModel = new ChatGroq({
+  apiKey: process.env.GROQ_API_KEY,
+  model: "llama-3.3-70b-versatile", // ✅ best choice
+  temperature: 0.7,
+});
 
 
 
@@ -15,8 +16,8 @@ const mistralModel = new ChatMistralAI({
 
 
 
-export async function generateGeminiResponse(messages) {
- const response  = await geminiModel.invoke(
+export async function generateGroqResponse(messages) {
+ const response  = await groqModel.invoke(
     messages.map((msg)=>{
         if(msg.role === "user"){
             return new HumanMessage(msg.content)

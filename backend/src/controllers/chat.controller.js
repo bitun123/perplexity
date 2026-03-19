@@ -1,5 +1,5 @@
 import {
-  generateGeminiResponse,
+  generateGroqResponse,
   generateMistralChatTitle,
 } from "../services/ai.service.js";
 import chatModel from "../models/chats.model.js";
@@ -33,7 +33,7 @@ export const sendMessage = async (req, res) => {
   const messages = await messageModel.find({ chat: chatId || chat._id });
 
   //generate a response from the AI using the provided message and the chat history, and create a new message document for the AI's response
-  const aiResponse = await generateGeminiResponse(messages);
+  const aiResponse = await generateGroqResponse(messages);
 
   //AI message should also be created with the chatId if it exists, otherwise use the newly created chat's id
   const aiMessage = await messageModel.create({

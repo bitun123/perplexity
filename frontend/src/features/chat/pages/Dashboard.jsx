@@ -3,16 +3,18 @@ import { useSelector } from 'react-redux';
 import { useChat } from '../hooks/useChat';
 import { useEffect } from 'react';
 import { Send, Image, Mic, Square } from 'lucide-react';
+import ReactMarkdown from 'react-markdown';
+import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
+import { atomDark } from 'react-syntax-highlighter/dist/esm/styles/prism';
 
 
 
 function Dashboard() {
 
 
-    const chats  = useSelector((state) => state.chat)
+    const chats = useSelector((state) => state.chat)
     const currentChatId = useSelector((state) => state.chat.currentChatId)
 
-console.log(typeof chats.chats[currentChatId])
 
     const chat = useChat()
 
@@ -23,14 +25,15 @@ console.log(typeof chats.chats[currentChatId])
     const fileInputRef = useRef(null)
     const mediaRecorderRef = useRef(null)
     const audioChunksRef = useRef([])
-  
+
 
     useEffect(() => {
         chat.initializeSocketConnection()
+        chat.handleGetChats()
     }, [])
 
     const { user } = useSelector((state) => state.auth);
-    
+
     const handleSendMessage = (e) => {
         e.preventDefault()
         if (inputValue.trim() === '' && !selectedImage) return
@@ -87,6 +90,10 @@ console.log(typeof chats.chats[currentChatId])
         }
     }
 
+    const openChat = (chatId) => {
+        chat.handleOpenChat(chatId)
+    }
+
     return (
         <div className="flex h-screen bg-gray-900 text-white overflow-hidden">
             {/* Sidebar - Chat List */}
@@ -99,17 +106,17 @@ console.log(typeof chats.chats[currentChatId])
                 </div>
 
                 {/* Chat History */}
-                <div className="flex-1 overflow-y-auto">
-                    {/* <div className="p-3 space-y-2">
-                        {chats.chats[currentChatId]?.map((chat) => (
-                            <button
-                                key={chat.id}
-                                className="w-full text-left px-4 py-3 rounded-lg bg-gray-800 hover:bg-gray-700 transition-colors text-sm truncate"
-                            >
-                                {chat.title}
-                            </button>
-                        ))}
-                    </div> */}
+                <div className="flex-1 overflow-y-auto flex flex-col gap-3 p-2">
+                    {Object.values(chats.chats || {}).map((chat) => (
+                        <button
+                            onClick={() => openChat(chat.id)}
+                            key={chat.id}
+                            type='button'
+                            className='w-full cursor-pointer rounded-xl  bg-gray-800 px-3 py-2 text-left text-base font-medium text-white/90 transition hover:border-white hover:text-white'
+                        >
+                            {chat.title}
+                        </button>
+                    ))}
                 </div>
 
                 {/* User Profile */}
@@ -136,16 +143,73 @@ console.log(typeof chats.chats[currentChatId])
                             className={`flex ${message.role === 'user' ? 'justify-end' : 'justify-start'}`}
                         >
                             <div
-                                className={`max-w-xs md:max-w-md lg:max-w-2xl rounded-4xl px-4 py-3 md:px-6 md:py-4 ${
-                                    message.role === 'user'
-                                        ? 'bg-blue-600 text-white'
-                                        : 'bg-gray-800 text-gray-100'
-                                }`}
+                                className={`max-w-xs md:max-w-md lg:max-w-2xl rounded-4xl px-4 py-3 md:px-6 md:py-4 ${message.role === 'user'
+                                    ? 'bg-blue-600 text-white'
+                                    : 'bg-gray-800 text-gray-100'
+                                    }`}
                             >
                                 {message.image && (
                                     <img src={message.image} alt="Message" className="w-full rounded-lg mb-2 max-w-xs" />
                                 )}
-                                <p className="text-sm md:text-base leading-relaxed">{message.content}</p>
+                                {message.role === 'user' ? (
+                                    <p className="text-sm md:text-base">{message.content}</p>
+                                ) : (
+                                    <ReactMarkdown
+                                        components={{
+                                            h1: ({ children }) => <h1 className='mb-4 text-2xl font-bold flex items-center gap-2'>{children}</h1>,
+                                            h2: ({ children }) => <h2 className='mb-4 mt-4 text-xl font-bold flex items-center gap-2'>{children}</h2>,
+                                            h3: ({ children }) => <h3 className='mb-3 mt-3 text-lg font-semibold'>{children}</h3>,
+                                            h4: ({ children }) => <h4 className='mb-2 mt-2 text-base font-semibold'>{children}</h4>,
+                                            h5: ({ children }) => <h5 className='mb-2 mt-2 text-sm font-semibold'>{children}</h5>,
+                                            p: ({ children }) => <p className='mb-3 last:mb-0 text-sm md:text-base leading-relaxed whitespace-pre-wrap'>{children}</p>,
+                                            ul: ({ children }) => <ul className='mb-3 ml-6 space-y-2 list-disc'>{children}</ul>,
+                                            ol: ({ children }) => <ol className='mb-3 ml-6 space-y-2 list-decimal'>{children}</ol>,
+                                            li: ({ children }) => <li className='text-sm md:text-base'><span>{children}</span></li>,
+                                            code: ({ inline, className, children }) => {
+                                                const match = /language-(\w+)/.exec(className || '');
+                                                const lang = match ? match[1] : 'javascript';
+
+                                                if (!inline) {
+                                                    return (
+                                                        <SyntaxHighlighter
+                                                            language={lang}
+                                                            style={atomDark}
+                                                            className='mb-3 rounded-lg overflow-x-auto text-xs md:text-sm'
+                                                            customStyle={{
+                                                                padding: '1rem',
+                                                                margin: '0.75rem 0',
+                                                                borderRadius: '0.5rem',
+                                                                background: '#1e293b'
+                                                            }}
+                                                        >
+                                                            {String(children).replace(/\n$/, '')}
+                                                        </SyntaxHighlighter>
+                                                    );
+                                                }
+
+                                                return <code className='rounded bg-slate-700 px-1.5 py-0.5 font-mono text-xs md:text-sm'>{children}</code>;
+                                            },
+                                            pre: ({ children }) => <div className='mb-3'>{children}</div>,
+                                            blockquote: ({ children }) => (
+                                                <blockquote className='mb-3 border-l-4 border-blue-400 pl-4 italic text-gray-300'>
+                                                    {children}
+                                                </blockquote>
+                                            ),
+                                            hr: () => <hr className='my-4 border-gray-600' />,
+                                            a: ({ href, children }) => <a href={href} target="_blank" rel="noopener noreferrer" className='text-blue-400 hover:text-blue-300 underline'>{children}</a>,
+                                            strong: ({ children }) => <strong className='font-bold text-white'>{children}</strong>,
+                                            em: ({ children }) => <em className='italic text-gray-200'>{children}</em>,
+                                            table: ({ children }) => <table className='mb-3 w-full border-collapse border border-gray-600'>{children}</table>,
+                                            thead: ({ children }) => <thead className='bg-gray-800'>{children}</thead>,
+                                            tbody: ({ children }) => <tbody>{children}</tbody>,
+                                            tr: ({ children }) => <tr className='border border-gray-600'>{children}</tr>,
+                                            td: ({ children }) => <td className='px-3 py-2 text-sm border border-gray-600'>{children}</td>,
+                                            th: ({ children }) => <th className='px-3 py-2 text-sm border border-gray-600 font-bold'>{children}</th>,
+                                        }}
+                                    >
+                                        {message.content}
+                                    </ReactMarkdown>
+                                )}
                             </div>
                         </div>
                     ))}
@@ -204,11 +268,10 @@ console.log(typeof chats.chats[currentChatId])
                                 <button
                                     type="button"
                                     onClick={handleVoiceRecord}
-                                    className={`px-3 md:px-4 py-2 md:py-3 rounded-lg transition-colors flex items-center justify-center ${
-                                        isRecording
-                                            ? 'bg-red-600 hover:bg-red-700 text-white'
-                                            : 'bg-gray-800 hover:bg-gray-700 text-gray-300 hover:text-white'
-                                    }`}
+                                    className={`px-3 md:px-4 py-2 md:py-3 rounded-lg transition-colors flex items-center justify-center ${isRecording
+                                        ? 'bg-red-600 hover:bg-red-700 text-white'
+                                        : 'bg-gray-800 hover:bg-gray-700 text-gray-300 hover:text-white'
+                                        }`}
                                     title={isRecording ? 'Stop recording' : 'Record voice'}
                                 >
                                     {isRecording ? <Square size={20} /> : <Mic size={20} />}
