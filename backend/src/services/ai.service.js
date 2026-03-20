@@ -6,7 +6,7 @@ import { AIMessage, HumanMessage, SystemMessage } from "@langchain/core/messages
 
 export const groqModel = new ChatGroq({
   apiKey: process.env.GROQ_API_KEY,
-  model: "llama3-70b-8192",
+  model: "llama-4-maverick-17b",
   temperature: 0.7,
   streaming: true,
 });
