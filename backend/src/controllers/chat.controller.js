@@ -10,29 +10,33 @@ import messageModel from "../models/message.model.js";
 export const sendMessage = async (req, res) => {
   const { message, chat: chatId } = req.body;
 
+console.log(chatId)
+
   let chat = null;
+  let title = null;
 
   if (!chatId) {
-    const title = await generateMistralChatTitle(message);
+    title = await generateMistralChatTitle(message);
     chat = await chatModel.create({ title, user: req.user.id, role: "user" });
   } else {
     chat = await chatModel.findById(chatId);
   }
 
-  const resolvedChatId = chat._id;
+;
 
   await messageModel.create({
-    chat: resolvedChatId,
+    chat:  chat._id,
     content: message,
     role: "user",
   });
 
-  const messages = await messageModel.find({ chat: resolvedChatId });
+  const messages = await messageModel.find({ chat: chat._id });
 
   // ✅ SSE Headers
   res.setHeader("Content-Type", "text/event-stream");
   res.setHeader("Cache-Control", "no-cache");
   res.setHeader("Connection", "keep-alive");
+  res.setHeader("X-Accel-Buffering", "no");
 
   // ✅ Send chat info first so frontend gets the chatId
   res.write(`data: ${JSON.stringify({ type: "chat", chat })}\n\n`);
@@ -47,7 +51,7 @@ export const sendMessage = async (req, res) => {
 
   // ✅ Save complete AI message to DB
   const aiMessage = await messageModel.create({
-    chat: resolvedChatId,
+    chat: chat._id,
     content: fullContent,
     role: "ai",
   });

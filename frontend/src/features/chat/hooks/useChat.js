@@ -18,53 +18,48 @@ export const useChat = () => {
   const dispatch = useDispatch();
 
   // ─── Send Message (Streaming) ───────────────────────────────────────────────
-  const handleSendMessage = async ({ message, chatId }) => {
-    try {
-      dispatch(setLoading(true));
+ const handleSendMessage = async ({ message, chatId }) => {
+  try {
+    dispatch(setLoading(true));
 
-      // ✅ Show user message instantly for existing chats
-      if (chatId) {
-        dispatch(addNewMessage({ chatId, content: message, role: "user" }));
-      }
-
-      let resolvedChatId = chatId;
-      const streamingMessageId = crypto.randomUUID();
-
-      await sendMessageStream({
-        message,
-        chatId,
-
-        // ✅ Got real chatId from backend
-        onChat: (chat) => {
-          resolvedChatId = chat._id;
-          dispatch(createNewChat({ chatId: chat._id, title: chat.title }));
-
-          // New chat — add user message now (we have real chatId)
-          if (!chatId) {
-            dispatch(addNewMessage({ chatId: chat._id, content: message, role: "user" }));
-          }
-
-  
-          dispatch(addStreamingMessage({ chatId: chat._id, id: streamingMessageId }));
-          dispatch(setCurrentChatId(chat._id));
-        },
-
-
-        onToken: (token) => {
-          dispatch(appendToken({ chatId: resolvedChatId, id: streamingMessageId, token }));
-        },
-
-        onDone: (AIMessage) => {
-          dispatch(finalizeMessage({ chatId: resolvedChatId, id: streamingMessageId, AIMessage }));
-        },
-      });
-
-    } catch (error) {
-      dispatch(setError(error.message));
-    } finally {
-      dispatch(setLoading(false));
+    if (chatId) {
+      dispatch(addNewMessage({ chatId, content: message, role: "user" }));
     }
-  };
+
+    let resolvedChatId = chatId;
+    const streamingMessageId = crypto.randomUUID();
+
+    await sendMessageStream({
+      message,
+      chatId,
+
+      onChat: (chat) => {
+        resolvedChatId = chat._id;
+        dispatch(createNewChat({ chatId: chat._id, title: chat.title }));
+
+        if (!chatId) {
+          dispatch(addNewMessage({ chatId: chat._id, content: message, role: "user" }));
+        }
+
+        dispatch(addStreamingMessage({ chatId: chat._id, id: streamingMessageId }));
+        dispatch(setCurrentChatId(chat._id));
+      },
+
+      onToken: (token) => {
+        dispatch(appendToken({ chatId: resolvedChatId, id: streamingMessageId, token }));
+      },
+
+      onDone: (AIMessage) => {
+        dispatch(finalizeMessage({ chatId: resolvedChatId, id: streamingMessageId, AIMessage }));
+        dispatch(setLoading(false)); // ✅ stream khatam hone pe
+      },
+    });
+
+  } catch (error) {
+    dispatch(setError(error.message));
+    dispatch(setLoading(false)); // ✅ sirf error pe
+  }
+};
 
   
   const handleGetChats = async () => {

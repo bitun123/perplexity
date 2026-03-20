@@ -1,160 +1,12 @@
 import React, { useState, useRef, useEffect } from 'react'
 import { useSelector } from 'react-redux';
 import { useChat } from '../hooks/useChat';
-import { Send, Image, Mic, Square, Copy, ThumbsUp, ThumbsDown, Share, Check } from 'lucide-react';
-import ReactMarkdown from 'react-markdown';
-import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
-import { atomDark } from 'react-syntax-highlighter/dist/esm/styles/prism';
+import { Send, Image, Mic, Square, } from 'lucide-react';
+import MarkdownContent from '../components/MarkdownContent';
+import MessageActions from '../components/MessageActions';
+import { useAuth } from '../../auth/hooks/useAuth';
 
-// ─── Message Action Buttons ───────────────────────────────────────────────────
-const MessageActions = ({ message }) => {
-    const [copied, setCopied] = useState(false);
-    const [liked, setLiked] = useState(null);
 
-    const handleCopy = () => {
-        navigator.clipboard.writeText(message.content);
-        setCopied(true);
-        setTimeout(() => setCopied(false), 2000);
-    };
-
-    return (
-        <div className="flex items-center gap-1 mt-3 opacity-0 group-hover:opacity-100 transition-opacity duration-200">
-            <button
-                onClick={handleCopy}
-                className="p-1 sm:p-1.5 rounded-md text-gray-500 hover:text-white hover:bg-gray-800 transition-colors"
-                title="Copy"
-            >
-                {copied ? <Check size={13} className="sm:w-4 sm:h-4 text-green-400" /> : <Copy size={13} className="sm:w-4 sm:h-4" />}
-            </button>
-            <button
-                onClick={() => setLiked(liked === 'up' ? null : 'up')}
-                className={`p-1 sm:p-1.5 rounded-md transition-colors ${liked === 'up' ? 'text-blue-400 bg-blue-400/10' : 'text-gray-500 hover:text-white hover:bg-gray-800'}`}
-                title="Good response"
-            >
-                <ThumbsUp size={13} className="sm:w-4 sm:h-4" />
-            </button>
-            <button
-                onClick={() => setLiked(liked === 'down' ? null : 'down')}
-                className={`p-1 sm:p-1.5 rounded-md transition-colors ${liked === 'down' ? 'text-red-400 bg-red-400/10' : 'text-gray-500 hover:text-white hover:bg-gray-800'}`}
-                title="Bad response"
-            >
-                <ThumbsDown size={13} className="sm:w-4 sm:h-4" />
-            </button>
-            <button
-                className="p-1 sm:p-1.5 rounded-md text-gray-500 hover:text-white hover:bg-gray-800 transition-colors"
-                title="Share"
-            >
-                <Share size={13} className="sm:w-4 sm:h-4" />
-            </button>
-        </div>
-    );
-};
-
-// ─── Markdown Renderer ────────────────────────────────────────────────────────
-const MarkdownContent = ({ content }) => (
-    <ReactMarkdown
-        components={{
-            h1: ({ children }) => (
-                <h1 className="mt-0 mb-5 text-xl sm:text-2xl md:text-3xl font-bold text-white">{children}</h1>
-            ),
-            h2: ({ children }) => (
-                <h2 className="mt-6 mb-4 text-lg sm:text-xl md:text-2xl font-bold text-white">{children}</h2>
-            ),
-            h3: ({ children }) => (
-                <h3 className="mt-4 mb-2 text-base sm:text-lg md:text-xl font-semibold text-gray-200">{children}</h3>
-            ),
-            p: ({ children }) => (
-                <p className="mb-4 last:mb-0 text-xs sm:text-sm md:text-base leading-6 sm:leading-7 text-gray-200">{children}</p>
-            ),
-            ul: ({ children }) => (
-                <ul className="mb-4 ml-4 sm:ml-5 space-y-2 list-disc">{children}</ul>
-            ),
-            ol: ({ children }) => (
-                <ol className="mb-4 ml-4 sm:ml-5 space-y-2 list-decimal">{children}</ol>
-            ),
-            li: ({ children }) => (
-                <li className="text-xs sm:text-sm md:text-base text-gray-300">{children}</li>
-            ),
-            code: ({ inline, className, children }) => {
-                const match = /language-(\w+)/.exec(className || '');
-                const lang = match ? match[1] : 'javascript';
-
-                if (!inline) {
-                    return (
-                        <div className="mb-5 rounded-lg sm:rounded-xl overflow-hidden border border-gray-700 bg-gray-900">
-                            <div className="flex items-center justify-between px-3 sm:px-4 py-2 sm:py-3 border-b border-gray-700 overflow-x-auto">
-                                <span className="text-xs text-gray-400 font-mono uppercase tracking-wider whitespace-nowrap">
-                                    {lang}
-                                </span>
-                                <button
-                                    onClick={() => navigator.clipboard.writeText(String(children))}
-                                    className="text-xs text-gray-400 hover:text-white transition-colors px-2 py-1 rounded hover:bg-gray-700 flex-shrink-0"
-                                >
-                                    Copy
-                                </button>
-                            </div>
-                            <SyntaxHighlighter
-                                language={lang}
-                                style={atomDark}
-                                customStyle={{
-                                    margin: 0,
-                                    padding: '0.75rem 1rem',
-                                    background: '#0d1117',
-                                    fontSize: '0.75rem',
-                                    lineHeight: '1.5',
-                                }}
-                            >
-                                {String(children).replace(/\n$/, '')}
-                            </SyntaxHighlighter>
-                        </div>
-                    );
-                }
-
-                return (
-                    <code className="rounded-md bg-gray-800 border border-gray-700 px-2 py-1 font-mono text-xs text-blue-300">
-                        {children}
-                    </code>
-                );
-            },
-            pre: ({ children }) => <div className="mb-1">{children}</div>,
-            blockquote: ({ children }) => (
-                <div className="my-5 px-3 sm:px-4 py-3 rounded-lg bg-blue-500/10 border-l-4 border-blue-500 text-gray-300 text-xs sm:text-sm md:text-base">
-                    {children}
-                </div>
-            ),
-            hr: () => <hr className="my-4 border-gray-700" />,
-            a: ({ href, children }) => (
-                <a href={href} target="_blank" rel="noopener noreferrer" className="text-blue-400 hover:text-blue-300 underline underline-offset-2">
-                    {children}
-                </a>
-            ),
-            strong: ({ children }) => (
-                <strong className="font-semibold text-gray-200 text-[1.02rem]">{children}</strong>
-            ),
-            em: ({ children }) => <em className="italic text-gray-300">{children}</em>,
-            table: ({ children }) => (
-                <div className="mb-5 overflow-x-auto rounded-lg sm:rounded-xl border border-gray-700 bg-gray-900/50 -mx-3 sm:mx-0">
-                    <table className="w-full text-xs sm:text-sm">{children}</table>
-                </div>
-            ),
-            thead: ({ children }) => (
-                <thead className="bg-gray-900 text-gray-200 border-b border-gray-700">{children}</thead>
-            ),
-            tbody: ({ children }) => (
-                <tbody className="divide-y divide-gray-700">{children}</tbody>
-            ),
-            tr: ({ children }) => (
-                <tr className="hover:bg-gray-800/30 transition-colors">{children}</tr>
-            ),
-            td: ({ children }) => <td className="px-3 sm:px-5 py-2 sm:py-3 text-gray-300">{children}</td>,
-            th: ({ children }) => (
-                <th className="px-3 sm:px-5 py-2 sm:py-3 text-left font-semibold text-gray-100">{children}</th>
-            ),
-        }}
-    >
-        {content}
-    </ReactMarkdown>
-);
 
 // ─── Dashboard ────────────────────────────────────────────────────────────────
 function Dashboard() {
@@ -163,7 +15,6 @@ function Dashboard() {
     const { user } = useSelector((state) => state.auth);
 
     const chat = useChat();
-
     const [inputValue, setInputValue] = useState('');
     const [selectedImage, setSelectedImage] = useState(null);
     const [isRecording, setIsRecording] = useState(false);
@@ -177,7 +28,7 @@ function Dashboard() {
     useEffect(() => {
         messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
     }, [chats.chats[currentChatId]?.messages?.length,
-        chats.chats[currentChatId]?.messages?.at(-1)?.content]);
+    chats.chats[currentChatId]?.messages?.at(-1)?.content]);
 
     useEffect(() => {
         chat.initializeSocketConnection();
@@ -250,11 +101,10 @@ function Dashboard() {
                             key={c.id}
                             type="button"
                             onClick={() => chat.handleOpenChat(c.id)}
-                            className={`w-full cursor-pointer rounded-lg md:rounded-xl px-2 md:px-3 py-2 text-left text-xs md:text-sm font-medium transition truncate ${
-                                currentChatId === c.id
+                            className={`w-full cursor-pointer rounded-lg md:rounded-xl px-2 md:px-3 py-2 text-left text-xs md:text-sm font-medium transition truncate ${currentChatId === c.id
                                     ? 'bg-gray-800 text-white'
                                     : 'bg-gray-950 text-gray-300 hover:bg-gray-800 hover:text-white'
-                            }`}
+                                }`}
                             title={c.title}
                         >
                             {c.title}
@@ -276,14 +126,14 @@ function Dashboard() {
             </aside>
 
             {/* ── Main ── */}
-            <main className="flex-1 flex flex-col w-full bg-gray-950 overflow-hidden">
+            <main className="flex-1 flex flex-col justify-content items-center w-full bg-gray-950 overflow-hidden">
 
                 {/* Messages */}
-                <div className="w-full flex-1 overflow-y-auto px-4 py-4 md:px-6 md:py-6 space-y-4 md:space-y-6 no-scrollbar max-w-4xl mx-auto">
+                <div className="w-[95%] flex-1 overflow-y-auto px-4 py-4 md:px-6 md:py-6 space-y-4 md:space-y-6 no-scrollbar  mx-auto">
 
                     {messages.length === 0 && (
-                        <div className="flex h-full items-center justify-center text-gray-600 text-xs sm:text-sm">
-                            Start a conversation…
+                        <div className="flex h-full text-center items-center justify-center text-gray-600  sm:text-sm">
+                            <h1 className='text-5xl'>    What Can I Help  With ?</h1>
                         </div>
                     )}
 
@@ -293,11 +143,10 @@ function Dashboard() {
                             className={`flex ${message.role === 'user' ? 'justify-end' : 'w-full'}`}
                         >
                             <div
-                                className={`group max-w-full sm:max-w-[90%] md:max-w-[85%] lg:max-w-[75%] rounded-2xl px-3 py-3 sm:px-5 sm:py-4 md:px-7 md:py-5 ${
-                                    message.role === 'user'
-                                        ? 'bg-gray-700 text-white ml-auto rounded-3xl'
+                                className={`group max-w-full sm:max-w-[90%] md:max-w-[85%] lg:max-w-[75%] rounded-2xl px-3 py-3 sm:px-5 sm:py-4 md:px-7 md:py-5 ${message.role === 'user'
+                                        ? 'bg-gray-700 text-white rounded-4xl'
                                         : 'text-gray-100 mr-auto'
-                                }`}
+                                    }`}
                             >
                                 {message.image && (
                                     <img src={message.image} alt="Message" className="w-full rounded-lg mb-2 max-w-xs" />
@@ -328,7 +177,7 @@ function Dashboard() {
                 </div>
 
                 {/* ── Input Area ── */}
-                <div className="w-full p-3 md:p-6 border-t border-gray-800">
+                <div className="w-full p-3 md:p-6">
                     <div className="w-full max-w-4xl mx-auto">
                         {selectedImage && (
                             <div className="mb-3 relative inline-block">
@@ -375,11 +224,10 @@ function Dashboard() {
                                 <button
                                     type="button"
                                     onClick={handleVoiceRecord}
-                                    className={`px-3 sm:px-4 md:px-4 py-2.5 sm:py-3 md:py-4 rounded-lg transition-colors flex items-center justify-center flex-shrink-0 ${
-                                        isRecording
+                                    className={`px-3 sm:px-4 md:px-4 py-2.5 sm:py-3 md:py-4 rounded-lg transition-colors flex items-center justify-center flex-shrink-0 ${isRecording
                                             ? 'bg-red-600 hover:bg-red-700 text-white'
                                             : 'bg-gray-800 hover:bg-gray-700 text-gray-300 hover:text-white'
-                                    }`}
+                                        }`}
                                     title={isRecording ? 'Stop recording' : 'Record voice'}
                                 >
                                     {isRecording ? <Square size={16} className="sm:w-5 sm:h-5 md:w-5 md:h-5" /> : <Mic size={16} className="sm:w-5 sm:h-5 md:w-5 md:h-5" />}

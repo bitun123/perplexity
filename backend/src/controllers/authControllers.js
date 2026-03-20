@@ -211,7 +211,6 @@ async function loginController(req, res) {
 async function getMeController(req, res) {
   try {
     const userId = req.user.id;
-    console.log(userId);
     const user = await userModel.findById(userId).select("-password");
 
     if (!user) {

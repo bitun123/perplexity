@@ -8,6 +8,7 @@ import {
 } from "../service/auth.api";
 import { setUser, setLoading, setError } from "../states/authSlice";
 
+
 export const useAuth = () => {
   const dispatch = useDispatch();
 
@@ -27,8 +28,7 @@ export const useAuth = () => {
     try {
       dispatch(setLoading(true));
       const response = await login({ email, password });
-      console.log(response);
-      dispatch(setUser(response));
+      dispatch(setUser(response.user));
     } catch (error) {
       dispatch(setError(error.message));
       throw error;
@@ -64,16 +64,14 @@ export const useAuth = () => {
     try {
       dispatch(setLoading(true));
       const response = await getMe();
-      console.log(response)
       dispatch(setUser(response.user));
+      console.log(response.user)
     } catch (error) {
       dispatch(setError(error.message));
     } finally {
       dispatch(setLoading(false));
     }
   };
-
-
   return {
     handleRegister,
     handleLogin,
