@@ -1,1 +1,2 @@
-﻿# chat application where user can ask anything 
+﻿# chat application 
+where user can ask anything... 
